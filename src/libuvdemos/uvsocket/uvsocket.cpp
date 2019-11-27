@@ -65,6 +65,8 @@ static void on_connection(uv_stream_t*, int status);
 static void after_write(uv_write_t* req, int status) {
 	write_req_t* wr;
 
+	printf("after_write\n");
+
 	/* Free the read/write buffer and the request */
 	wr = (write_req_t*)req;
 	free(wr->buf.base);
@@ -81,6 +83,7 @@ static void after_write(uv_write_t* req, int status) {
 
 
 static void after_shutdown(uv_shutdown_t* req, int status) {
+	printf("after_shutdown\n");
 	uv_close((uv_handle_t*)req->handle, on_close);
 	free(req);
 }
@@ -92,6 +95,7 @@ static void after_read(uv_stream_t* handle,
 	int i;
 	write_req_t* wr;
 	uv_shutdown_t* sreq;
+	printf("after_read(%d)\n", nread);
 
 	if (nread < 0) {
 		/* Error or EOF */
@@ -140,6 +144,7 @@ static void after_read(uv_stream_t* handle,
 
 
 static void on_close(uv_handle_t* peer) {
+	printf("on_close\n");
 	free(peer);
 }
 
@@ -147,6 +152,7 @@ static void on_close(uv_handle_t* peer) {
 static void echo_alloc(uv_handle_t* handle,
 	size_t suggested_size,
 	uv_buf_t* buf) {
+	printf("echo_alloc\n");
 	buf->base = (char*)malloc(suggested_size);
 	buf->len = suggested_size;
 }
@@ -160,7 +166,7 @@ static void on_connection(uv_stream_t* server, int status) {
 		fprintf(stderr, "Connect error %s\n", uv_err_name(status));
 	}
 	ASSERT(status == 0);
-
+	printf("on_connection\n");
 	switch (serverType) {
 	case TCP:
 		stream = (uv_stream_t*)malloc(sizeof(uv_tcp_t));
@@ -193,7 +199,9 @@ static void on_connection(uv_stream_t* server, int status) {
 
 
 static void on_server_close(uv_handle_t* handle) {
+	printf("on_server_close\n");
 	ASSERT(handle == server);
+	exit(0);
 }
 
 
@@ -208,6 +216,7 @@ static void on_recv(uv_udp_t* handle,
 	uv_udp_send_t* req;
 	uv_buf_t sndbuf;
 
+	printf("on_recv\n");
 	ASSERT(nread > 0);
 	ASSERT(addr->sa_family == AF_INET);
 
@@ -220,6 +229,7 @@ static void on_recv(uv_udp_t* handle,
 
 
 static void on_send(uv_udp_send_t* req, int status) {
+	printf("on_send\n");
 	ASSERT(status == 0);
 	free(req);
 }
@@ -357,7 +367,7 @@ static int tcp4_echo_server() {
 
 	if (tcp4_echo_start(TEST_PORT))
 		return 1;
-
+	fprintf(stdout, "tcp4_echo_start 0.0.0.0:%d\n", TEST_PORT);
 	notify_parent_process();
 	uv_run(loop, UV_RUN_DEFAULT);
 	return 0;
