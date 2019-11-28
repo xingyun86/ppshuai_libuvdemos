@@ -3,6 +3,11 @@
 
 #include "uvsocket.h"
 #include "uv.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <map>
+#include <deque>
+#include <string>
 
 typedef struct {
 	uv_write_t req;
@@ -55,6 +60,47 @@ static uv_udp_t udpServer;
 static uv_pipe_t pipeServer;
 static uv_handle_t* server;
 
+std::map<int, std::map<int, std::map<uv_stream_t*, uv_stream_t*>>> g_map;
+typedef enum {
+	CMD_NUL = 0,
+	CMD_REG = 1,
+	CMD_DAT = 2,
+	CMD_MAX,
+}CMD_TYPE; 
+typedef enum {
+	SRV_NUL = 0,
+	SRV_SRV = 1,
+	SRV_CLI = 2,
+	SRV_GAT = 3,
+	SRV_MAX
+}SRV_TYPE;
+typedef struct  {
+	int bsn;
+	int cmd;
+	int src_type;
+	int64_t src_fd;
+	int dst_type;
+	int64_t dst_fd;
+	int data_len;
+	void* p_data;
+	void print_data()
+	{
+		printf("bsn=%d,cmd=%d,src_type=%d,src_fd=%lld,dst_type=%d,dst_fd=%lld,data_len=%d\n",
+			this->bsn,this->cmd,this->src_type,this->src_fd,this->dst_type,this->dst_fd,this->data_len);
+		if (this->data_len > 0)
+		{
+			for (size_t i = 0; i < this->data_len; i++)
+			{
+				if (i % 16)
+				{
+					printf("\n");
+				}
+				printf("%c ", ((const char *)(this->p_data))[i]);
+			}
+		}
+	}
+}tcp_data;
+
 static void after_write(uv_write_t* req, int status);
 static void after_read(uv_stream_t*, ssize_t nread, const uv_buf_t* buf);
 static void on_close(uv_handle_t* peer);
@@ -88,7 +134,56 @@ static void after_shutdown(uv_shutdown_t* req, int status) {
 	free(req);
 }
 
-
+/*if (buf->base[0] == 'L')
+{
+	std::map<int, std::map<int, std::map<int, uv_stream_t*>>> g_map;
+	g_map.insert({
+			{ 00, //业务码
+				{
+					{0,{}},//服务器
+					{1,{}},//客户端
+					{2,{}},//集群端
+				}
+			}
+		});
+	g_map.at(00).at(1).insert({ handle->u.fd, handle });
+}*/
+static int parse_request(uv_stream_t* handle,
+	ssize_t nread,
+	const uv_buf_t* buf)
+{
+	printf("parse_request(%d)\n", nread);
+	tcp_data* p_data = (tcp_data*)buf->base;
+	if (p_data)
+	{
+		tcp_data t_data;
+		memcpy((void *)&t_data, (const void *)p_data, sizeof(t_data));
+		t_data.print_data();
+		switch (p_data->cmd)
+		{
+		case CMD_REG:
+		{
+			if (p_data->src_type > SRV_NUL&& p_data->src_type < SRV_MAX)
+			{
+				g_map.insert({
+						{ p_data->bsn, //业务码
+							{
+								{SRV_SRV,{}},//服务器
+								{SRV_CLI,{}},//客户端
+								{SRV_GAT,{}},//集群端
+							}
+						}
+					});
+				g_map.at(p_data->bsn).at(p_data->src_type).insert({ handle, handle });
+			}
+		}
+		break;
+		default:
+			break;
+		}
+	}
+	return 0;
+}
 static void after_read(uv_stream_t* handle,
 	ssize_t nread,
 	const uv_buf_t* buf) {
@@ -118,6 +213,7 @@ static void after_read(uv_stream_t* handle,
 	 * If we get QS it means close the stream.
 	 */
 	if (!server_closed) {
+		parse_request(handle, nread, buf);
 		for (i = 0; i < nread; i++) {
 			if (buf->base[i] == 'Q') {
 				if (i + 1 < nread && buf->base[i + 1] == 'S') {
@@ -152,7 +248,7 @@ static void on_close(uv_handle_t* peer) {
 static void echo_alloc(uv_handle_t* handle,
 	size_t suggested_size,
 	uv_buf_t* buf) {
-	printf("echo_alloc\n");
+	printf("echo_alloc(suggested_size=%d)\n", suggested_size);
 	buf->base = (char*)malloc(suggested_size);
 	buf->len = suggested_size;
 }
@@ -216,7 +312,7 @@ static void on_recv(uv_udp_t* handle,
 	uv_udp_send_t* req;
 	uv_buf_t sndbuf;
 
-	printf("on_recv\n");
+	printf("on_recv(%d)\n", nread);
 	ASSERT(nread > 0);
 	ASSERT(addr->sa_family == AF_INET);
 
@@ -411,6 +507,5 @@ static int udp4_echo_server() {
 
 int main(int argc, char** argv)
 {
-	tcp4_echo_server();
-	return 0;
+	return tcp4_echo_server();
 }
