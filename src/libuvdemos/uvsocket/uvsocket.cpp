@@ -64,7 +64,7 @@ std::map<int, std::map<int, std::map<uv_stream_t*, uv_stream_t*>>> g_map;
 typedef enum {
 	CMD_NUL = 0,
 	CMD_REG = 1,
-	CMD_DAT = 2,
+	CMD_MSG = 2,
 	CMD_MAX,
 }CMD_TYPE; 
 typedef enum {
@@ -74,6 +74,8 @@ typedef enum {
 	SRV_GAT = 3,
 	SRV_MAX
 }SRV_TYPE;
+
+#pragma pack(push,1)
 typedef struct  {
 	int bsn;
 	int cmd;
@@ -95,11 +97,12 @@ typedef struct  {
 				{
 					printf("\n");
 				}
-				printf("%c ", ((const char *)(this->p_data))[i]);
+				printf("%02X ", (uint8_t)((const char *)(this->p_data))[i]);
 			}
 		}
 	}
-}tcp_data;
+}uvdata_packet_header;
+#pragma pack(pop)
 
 static void after_write(uv_write_t* req, int status);
 static void after_read(uv_stream_t*, ssize_t nread, const uv_buf_t* buf);
@@ -153,12 +156,10 @@ static int parse_request(uv_stream_t* handle,
 	const uv_buf_t* buf)
 {
 	printf("parse_request(%d)\n", nread);
-	tcp_data* p_data = (tcp_data*)buf->base;
+	uvdata_packet_header* p_data = (uvdata_packet_header*)buf->base;
 	if (p_data)
 	{
-		tcp_data t_data;
-		memcpy((void *)&t_data, (const void *)p_data, sizeof(t_data));
-		t_data.print_data();
+		p_data->print_data();
 		switch (p_data->cmd)
 		{
 		case CMD_REG:
@@ -175,7 +176,34 @@ static int parse_request(uv_stream_t* handle,
 						}
 					});
 				g_map.at(p_data->bsn).at(p_data->src_type).insert({ handle, handle });
+
+				write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
+				ASSERT(wr != NULL);
+				wr->buf = uv_buf_init(buf->base, nread);
+				memcpy(wr->buf.base + 12, handle, sizeof(handle));
+				if (uv_write(&wr->req, handle, &wr->buf, 1, after_write)) {
+					FATAL("uv_write failed");
+				}
+				return 1;
 			}
+		}
+		break;
+		case CMD_MSG:
+		{
+			if (p_data->src_type > SRV_NUL&& p_data->src_type < SRV_MAX
+				&&
+				p_data->dst_type > SRV_NUL&& p_data->dst_type < SRV_MAX)
+			{
+
+			}
+			write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
+			ASSERT(wr != NULL);
+			wr->buf = uv_buf_init(buf->base, nread);
+			memcpy(wr->buf.base + 12, g_map.at(p_data->bsn).at(p_data->src_type).begin()->first, sizeof(handle));
+			if (uv_write(&wr->req, handle, &wr->buf, 1, after_write)) {
+				FATAL("uv_write failed");
+			}
+			return 1;
 		}
 		break;
 		default:
@@ -213,8 +241,7 @@ static void after_read(uv_stream_t* handle,
 	 * If we get QS it means close the stream.
 	 */
 	if (!server_closed) {
-		parse_request(handle, nread, buf);
-		for (i = 0; i < nread; i++) {
+		/*for (i = 0; i < nread; i++) {
 			if (buf->base[i] == 'Q') {
 				if (i + 1 < nread && buf->base[i + 1] == 'S') {
 					free(buf->base);
@@ -226,9 +253,13 @@ static void after_read(uv_stream_t* handle,
 					server_closed = 1;
 				}
 			}
-		}
+		}*/
 	}
 
+	if (parse_request(handle, nread, buf) == 1)
+	{
+		return;
+	}
 	wr = (write_req_t*)malloc(sizeof * wr);
 	ASSERT(wr != NULL);
 	wr->buf = uv_buf_init(buf->base, nread);
