@@ -68,40 +68,45 @@ typedef enum {
 	CMD_MAX,
 }CMD_TYPE; 
 typedef enum {
-	SRV_NUL = 0,
-	SRV_SRV = 1,
-	SRV_CLI = 2,
-	SRV_GAT = 3,
-	SRV_MAX
-}SRV_TYPE;
+	CID_NUL = 0,
+	CID_SRV = 1,//服务器
+	CID_CLI = 2,//客户器
+	CID_GAT = 3,//网关器
+	CID_MAX
+}CID_TYPE;
 
 #pragma pack(push,1)
-typedef struct  {
-	int bsn;
-	int cmd;
-	int src_type;
-	int64_t src_fd;
-	int dst_type;
-	int64_t dst_fd;
-	int data_len;
-	void* p_data;
+typedef struct {
+	int bsn;//业务码
+	int cmd;//命令
+	int typ;//身份类型
+	int64_t cid;//身份标识
+	int len;//数据长度
 	void print_data()
 	{
-		printf("bsn=%d,cmd=%d,src_type=%d,src_fd=%lld,dst_type=%d,dst_fd=%lld,data_len=%d\n",
-			this->bsn,this->cmd,this->src_type,this->src_fd,this->dst_type,this->dst_fd,this->data_len);
-		if (this->data_len > 0)
+		printf("bsn=%d,cmd=%d,type=%d,cid=%lld,data_len=%d\n",
+			this->bsn, this->cmd, this->typ, this->cid, this->len);
+	}
+}package_message_header;
+typedef struct  {
+	package_message_header pmhdr;//数据头部
+	void* ptr;//数据内容
+	void print_data()
+	{
+		this->pmhdr.print_data();
+		if (this->pmhdr.len > 0)
 		{
-			for (size_t i = 0; i < this->data_len; i++)
+			for (size_t i = 0; i < this->pmhdr.len; i++)
 			{
 				if (i % 16)
 				{
 					printf("\n");
 				}
-				printf("%02X ", (uint8_t)((const char *)(this->p_data))[i]);
+				printf("%02X ", (uint8_t)((const char *)(this->ptr))[i]);
 			}
 		}
 	}
-}uvdata_packet_header;
+}package_message;
 #pragma pack(pop)
 
 static void after_write(uv_write_t* req, int status);
@@ -156,31 +161,35 @@ static int parse_request(uv_stream_t* handle,
 	const uv_buf_t* buf)
 {
 	printf("parse_request(%d)\n", nread);
-	uvdata_packet_header* p_data = (uvdata_packet_header*)buf->base;
-	if (p_data)
+	package_message* ppm = (package_message*)buf->base;
+	if (ppm)
 	{
-		p_data->print_data();
-		switch (p_data->cmd)
+		ppm->print_data();
+		switch (ppm->pmhdr.cmd)
 		{
 		case CMD_REG:
 		{
-			if (p_data->src_type > SRV_NUL&& p_data->src_type < SRV_MAX)
+			if (ppm->pmhdr.typ > CID_NUL&& ppm->pmhdr.typ < CID_MAX)
 			{
-				g_map.insert({
-						{ p_data->bsn, //业务码
+				if (g_map.find(ppm->pmhdr.bsn) == g_map.end())
+				{
+					g_map.insert({
+						{ ppm->pmhdr.bsn, //业务码
 							{
-								{SRV_SRV,{}},//服务器
-								{SRV_CLI,{}},//客户端
-								{SRV_GAT,{}},//集群端
+								{CID_SRV,{}},//服务器
+								{CID_CLI,{}},//客户端
+								{CID_GAT,{}},//网关器
 							}
 						}
-					});
-				g_map.at(p_data->bsn).at(p_data->src_type).insert({ handle, handle });
+						});
+				}
+				g_map.at(ppm->pmhdr.bsn).at(ppm->pmhdr.typ).insert({ handle, handle });
 
 				write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
 				ASSERT(wr != NULL);
 				wr->buf = uv_buf_init(buf->base, nread);
-				memcpy(wr->buf.base + 12, handle, sizeof(handle));
+				//返回身份标识
+				memcpy(&((package_message_header*)wr->buf.base)->cid, &handle, sizeof(handle));
 				if (uv_write(&wr->req, handle, &wr->buf, 1, after_write)) {
 					FATAL("uv_write failed");
 				}
@@ -190,20 +199,41 @@ static int parse_request(uv_stream_t* handle,
 		break;
 		case CMD_MSG:
 		{
-			if (p_data->src_type > SRV_NUL&& p_data->src_type < SRV_MAX
-				&&
-				p_data->dst_type > SRV_NUL&& p_data->dst_type < SRV_MAX)
+			if (ppm->pmhdr.typ > CID_NUL&& ppm->pmhdr.typ < CID_MAX)
 			{
-
+				if (g_map.find(ppm->pmhdr.bsn) != g_map.end())
+				{
+					switch (ppm->pmhdr.typ)
+					{
+					case CID_SRV:
+						// 服务器消息，查找客户端并推送消息给客户端处理
+						if (g_map.at(ppm->pmhdr.bsn).at(CID_CLI).find(reinterpret_cast<uv_stream_t *>(ppm->pmhdr.cid)) != g_map.at(ppm->pmhdr.bsn).at(CID_CLI).end())
+						{
+							write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
+							ASSERT(wr != NULL);
+							wr->buf = uv_buf_init(buf->base, nread);
+							if (uv_write(&wr->req, g_map.at(ppm->pmhdr.bsn).at(CID_CLI).at(reinterpret_cast<uv_stream_t*>(ppm->pmhdr.cid)), &wr->buf, 1, after_write)) {
+								FATAL("uv_write failed");
+							}
+							return 1;
+						}
+						break;
+					case CID_CLI:
+						// 客户端消息，查找服务器并推送消息给服务器处理
+						if (g_map.at(ppm->pmhdr.bsn).at(CID_SRV).size() > 0)
+						{
+							write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
+							ASSERT(wr != NULL);
+							wr->buf = uv_buf_init(buf->base, nread);
+							if (uv_write(&wr->req, g_map.at(ppm->pmhdr.bsn).at(CID_SRV).begin()->first, &wr->buf, 1, after_write)) {
+								FATAL("uv_write failed");
+							}
+							return 1;
+						}
+						break;
+					}
+				}
 			}
-			write_req_t* wr = (write_req_t*)malloc(sizeof * wr);
-			ASSERT(wr != NULL);
-			wr->buf = uv_buf_init(buf->base, nread);
-			memcpy(wr->buf.base + 12, g_map.at(p_data->bsn).at(p_data->src_type).begin()->first, sizeof(handle));
-			if (uv_write(&wr->req, handle, &wr->buf, 1, after_write)) {
-				FATAL("uv_write failed");
-			}
-			return 1;
 		}
 		break;
 		default:
