@@ -63,8 +63,8 @@ static uv_handle_t* server;
 std::map<int, std::map<int, std::map<uv_stream_t*, uv_stream_t*>>> g_map;
 typedef enum {
 	CMD_NUL = 0,
-	CMD_REG = 1,
-	CMD_MSG = 2,
+	CMD_REG = 1,//注册身份
+	CMD_MSG = 2,//消息传递
 	CMD_MAX,
 }CMD_TYPE; 
 typedef enum {
