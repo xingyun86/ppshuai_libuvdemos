@@ -71,7 +71,7 @@ typedef enum {
 	CID_NUL = 0,
 	CID_SRV = 1,//服务器
 	CID_CLI = 2,//客户器
-	CID_GAT = 3,//网关器
+	CID_RAC = 3,//网关器
 	CID_MAX
 }CID_TYPE;
 
@@ -178,7 +178,7 @@ static int parse_request(uv_stream_t* handle,
 							{
 								{CID_SRV,{}},//服务器
 								{CID_CLI,{}},//客户端
-								{CID_GAT,{}},//网关器
+								{CID_RAC,{}},//网关器
 							}
 						}
 						});
@@ -325,14 +325,14 @@ static void on_connection(uv_stream_t* server, int status) {
 	ASSERT(status == 0);
 	printf("on_connection\n");
 	switch (serverType) {
-	case TCP:
+	case stream_type::TCP:
 		stream = (uv_stream_t*)malloc(sizeof(uv_tcp_t));
 		ASSERT(stream != NULL);
 		r = uv_tcp_init(loop, (uv_tcp_t*)stream);
 		ASSERT(r == 0);
 		break;
 
-	case PIPE:
+	case stream_type::PIPE:
 		stream = (uv_stream_t*)malloc(sizeof(uv_pipe_t));
 		ASSERT(stream != NULL);
 		r = uv_pipe_init(loop, (uv_pipe_t*)stream, 0);
@@ -399,7 +399,7 @@ static int tcp4_echo_start(int port) {
 	ASSERT(0 == uv_ip4_addr("0.0.0.0", port, &addr));
 
 	server = (uv_handle_t*)&tcpServer;
-	serverType = TCP;
+	serverType = stream_type::TCP;
 
 	r = uv_tcp_init(loop, &tcpServer);
 	if (r) {
@@ -518,13 +518,50 @@ static int pipe_echo_start(char* pipeName) {
 	return 0;
 }
 
+static uv_tcp_t client;
 
-static int tcp4_echo_server() {
+static void client_connect_cb(uv_connect_t* req, int status) {
+	int r;
+	uv_buf_t buf; 
+	write_req_t* wr;
+	static package_message_header pmh = { 0 };
+
+	ASSERT(status == 0);
+
+	r = uv_read_start(req->handle, echo_alloc, after_read);
+	ASSERT(r == 0);
+
+	wr = (write_req_t*)malloc(sizeof * wr);
+	ASSERT(wr != NULL);
+
+	pmh.cmd = CMD_REG;
+	pmh.typ = CID_RAC;
+	buf.base = (char *)&pmh;
+	buf.len = sizeof(pmh);
+	wr->buf = uv_buf_init(buf.base, buf.len);
+
+	if (uv_write(&wr->req, (uv_stream_t*)req->handle, &wr->buf, 1, after_write)) {
+		FATAL("uv_write failed");
+	}
+}
+
+static int tcp4_echo_server(int argc, char ** argv) {
 	loop = uv_default_loop();
 
-	if (tcp4_echo_start(TEST_PORT))
-		return 1;
-	fprintf(stdout, "tcp4_echo_start 0.0.0.0:%d\n", TEST_PORT);
+	if (argc > 1)
+	{
+		if (tcp4_echo_start(atoi(argv[1])))
+			return 1;
+		fprintf(stdout, "tcp4_echo_start 0.0.0.0:%d\n", atoi(argv[1]));
+	}
+	if (argc > 3)
+	{
+		uv_connect_t connect_req;
+		struct sockaddr_in addr;
+		uv_ip4_addr(argv[2], atoi(argv[3]), &addr);
+		uv_tcp_init(loop, &client);
+		uv_tcp_connect(&connect_req, &client, (struct sockaddr*) & addr, client_connect_cb);
+	}
 	notify_parent_process();
 	uv_run(loop, UV_RUN_DEFAULT);
 	return 0;
@@ -568,5 +605,5 @@ static int udp4_echo_server() {
 
 int main(int argc, char** argv)
 {
-	return tcp4_echo_server();
+	return tcp4_echo_server(argc, argv);
 }
