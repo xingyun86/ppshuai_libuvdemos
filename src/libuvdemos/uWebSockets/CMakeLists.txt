@@ -31,32 +31,50 @@ link_directories(${CMAKE_BINARY_DIR}/libuv)
 #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # 生成debug版本
-set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_C_FLAGS_DEBUG "$ENV{CFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
+#set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_C_FLAGS_DEBUG "$ENV{CFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
 #set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
-list(APPEND uSockets_cflags /W4)
-list(APPEND uSockets_defines WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0600)
-list(APPEND uSockets_libraries
-	libcmtd
-    advapi32
-    iphlpapi
-    psapi
-    shell32
-    user32
-    userenv
-    ws2_32)
+
+	MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 if (MSVC)
-    set(CompilerFlags
-        CMAKE_CXX_FLAGS
-        CMAKE_CXX_FLAGS_DEBUG
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_C_FLAGS
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_RELEASE
-        )
-    foreach(CompilerFlag ${CompilerFlags})
-        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-    endforeach()
+	list(APPEND uSockets_cflags /W4)
+	list(APPEND uSockets_defines WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0600)
+	set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_NO_SSL -std=c11 -flto")
+	MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
+
+	if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+		list(APPEND uSockets_libraries
+			libcmtd
+			advapi32
+			iphlpapi
+			psapi
+			shell32
+			user32
+			userenv
+			ws2_32)
+	endif()
+	if(${CMAKE_BUILD_TYPE} STREQUAL Release)
+		list(APPEND uSockets_libraries
+			libcmt
+			advapi32
+			iphlpapi
+			psapi
+			shell32
+			user32
+			userenv
+			ws2_32)
+	endif()
+	set(CompilerFlags
+		CMAKE_CXX_FLAGS
+		CMAKE_CXX_FLAGS_DEBUG
+		CMAKE_CXX_FLAGS_RELEASE
+		CMAKE_C_FLAGS
+		CMAKE_C_FLAGS_DEBUG
+		CMAKE_C_FLAGS_RELEASE
+		)
+	foreach(CompilerFlag ${CompilerFlags})
+		string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+	endforeach()
 endif(MSVC)
 # 生成release版本
 #set(CMAKE_BUILD_TYPE "Release") 
@@ -77,7 +95,7 @@ MESSAGE(STATUS "DIR_uSockets_SRCS=" ${DIR_uSockets_SRCS} )
 
 # 指定生成目标 
 # Add source to this project's executable.
-ADD_LIBRARY(uWebSockets 
+add_library(uWebSockets 
 	SHARED 
 	${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
 # add_executable (uWebSockets  ${SRCS} ${DIR_SRCS} ${DIR_uSockets_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
@@ -90,12 +108,17 @@ target_link_libraries(uWebSockets uv_a ${uSockets_libraries})
 # 链接第三方动态库 
 #target_link_libraries(uWebSockets -luv)
 
+aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src DIR_uSockets_SRCS)
+aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/crypto DIR_uSockets_crypto_SRCS)
+aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/eventing DIR_uSockets_eventing_SRCS)
+aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/internal DIR_uSockets_internal_SRCS)
+
 add_library(uWebSockets_a 
 	STATIC 
 	${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
 target_compile_definitions(uWebSockets_a PRIVATE ${uSockets_defines})
 target_compile_options(uWebSockets_a PRIVATE ${uSockets_cflags})
 #target_include_directories(uWebSockets_a PUBLIC include PRIVATE ${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
-target_link_libraries(uWebSockets_a uv_a ${uSockets_libraries})
-
+#target_link_libraries(uWebSockets_a uv_a ${uSockets_libraries})
+SET_TARGET_PROPERTIES(uWebSockets_a PROPERTIES OUTPUT_NAME "uWebSockets_a")
 # TODO: Add tests and install targets if needed.
