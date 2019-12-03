@@ -554,6 +554,7 @@ static int tcp4_echo_server(int argc, char ** argv) {
 			return 1;
 		fprintf(stdout, "tcp4_echo_start 0.0.0.0:%d\n", atoi(argv[1]));
 	}
+
 	if (argc > 3)
 	{
 		uv_connect_t connect_req;
@@ -605,5 +606,10 @@ static int udp4_echo_server() {
 
 int main(int argc, char** argv)
 {
+	if (argc == 1)
+	{
+		printf("Usage:\n\t uvsocket [server port]\n\t uvsocket [server port] [rac server ip] [rac server port]\n");
+		return 0;
+	}
 	return tcp4_echo_server(argc, argv);
 }

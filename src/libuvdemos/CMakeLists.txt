@@ -9,4 +9,7 @@ project ("libuvdemos")
 add_subdirectory ("libuv")
 
 # Include sub-projects.
+add_subdirectory ("uWebSockets")
+
+# Include sub-projects.
 add_subdirectory ("uvsocket")

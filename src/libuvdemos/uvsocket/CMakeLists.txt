@@ -35,6 +35,20 @@ set(SRCS "uvsocket.cpp")
 # 并将名称保存到 DIR_LIB_SRCS 变量
 aux_source_directory(. DIR_SRCS)
 
+if (MSVC)
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+endif(MSVC)
+
 # 指定生成目标 
 # Add source to this project's executable.
 add_executable (uvsocket  ${SRCS} ${DIR_SRCS})
