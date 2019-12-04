@@ -5,6 +5,7 @@
 #include "uv.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <map>
 #include <deque>
 #include <string>
@@ -325,14 +326,14 @@ static void on_connection(uv_stream_t* server, int status) {
 	ASSERT(status == 0);
 	printf("on_connection\n");
 	switch (serverType) {
-	case stream_type::TCP:
+	case TCP:
 		stream = (uv_stream_t*)malloc(sizeof(uv_tcp_t));
 		ASSERT(stream != NULL);
 		r = uv_tcp_init(loop, (uv_tcp_t*)stream);
 		ASSERT(r == 0);
 		break;
 
-	case stream_type::PIPE:
+	case PIPE:
 		stream = (uv_stream_t*)malloc(sizeof(uv_pipe_t));
 		ASSERT(stream != NULL);
 		r = uv_pipe_init(loop, (uv_pipe_t*)stream, 0);
@@ -399,7 +400,7 @@ static int tcp4_echo_start(int port) {
 	ASSERT(0 == uv_ip4_addr("0.0.0.0", port, &addr));
 
 	server = (uv_handle_t*)&tcpServer;
-	serverType = stream_type::TCP;
+	serverType = TCP;
 
 	r = uv_tcp_init(loop, &tcpServer);
 	if (r) {

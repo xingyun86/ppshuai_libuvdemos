@@ -5,7 +5,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 # 项目信息
-project (uWebSockets LANGUAGES C)
+project (uSockets LANGUAGES C)
 
 MESSAGE(STATUS "CMAKE_BINARY_DIR=" ${CMAKE_BINARY_DIR})
 MESSAGE(STATUS "CMAKE_SOURCE_DIR=" ${CMAKE_SOURCE_DIR})
@@ -36,10 +36,11 @@ link_directories(${CMAKE_BINARY_DIR}/libuv)
 #set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
 
 	MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
+set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_NO_SSL -std=c11 -flto")
+
 if (MSVC)
 	list(APPEND uSockets_cflags /W4)
 	list(APPEND uSockets_defines WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0600)
-	set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_NO_SSL -std=c11 -flto")
 	MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 
 	if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
@@ -95,30 +96,30 @@ MESSAGE(STATUS "DIR_uSockets_SRCS=" ${DIR_uSockets_SRCS} )
 
 # 指定生成目标 
 # Add source to this project's executable.
-add_library(uWebSockets 
+add_library(uSockets 
 	SHARED 
 	${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
 # add_executable (uWebSockets  ${SRCS} ${DIR_SRCS} ${DIR_uSockets_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
-target_compile_definitions(uWebSockets
+target_compile_definitions(uSockets
                            INTERFACE USING_uWebSockets_SHARED=1
                            PRIVATE ${uSockets_defines} BUILDING_uWebSockets_SHARED=1)
-target_compile_options(uWebSockets PRIVATE ${uSockets_cflags})
+target_compile_options(uSockets PRIVATE ${uSockets_cflags})
 # 链接第三方静态库
-target_link_libraries(uWebSockets uv_a ${uSockets_libraries})
+target_link_libraries(uSockets uv_a ${uSockets_libraries})
 # 链接第三方动态库 
-#target_link_libraries(uWebSockets -luv)
+#target_link_libraries(uSockets -luv)
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src DIR_uSockets_SRCS)
 aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/crypto DIR_uSockets_crypto_SRCS)
 aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/eventing DIR_uSockets_eventing_SRCS)
 aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/internal DIR_uSockets_internal_SRCS)
 
-add_library(uWebSockets_a 
+add_library(uSockets_a 
 	STATIC 
 	${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
-target_compile_definitions(uWebSockets_a PRIVATE ${uSockets_defines})
-target_compile_options(uWebSockets_a PRIVATE ${uSockets_cflags})
-#target_include_directories(uWebSockets_a PUBLIC include PRIVATE ${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
-#target_link_libraries(uWebSockets_a uv_a ${uSockets_libraries})
-SET_TARGET_PROPERTIES(uWebSockets_a PROPERTIES OUTPUT_NAME "uWebSockets_a")
+target_compile_definitions(uSockets_a PRIVATE ${uSockets_defines})
+target_compile_options(uSockets_a PRIVATE ${uSockets_cflags})
+#target_include_directories(uSockets_a PUBLIC include PRIVATE ${DIR_uSockets_SRCS} ${DIR_uSockets_crypto_SRCS} ${DIR_uSockets_eventing_SRCS} ${DIR_uSockets_internal_SRCS})
+target_link_libraries(uSockets_a uv_a ${uSockets_libraries})
+#SET_TARGET_PROPERTIES(uSockets_a PROPERTIES OUTPUT_NAME "uSockets_a")
 # TODO: Add tests and install targets if needed.

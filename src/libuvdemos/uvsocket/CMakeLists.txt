@@ -15,10 +15,14 @@ MESSAGE(STATUS "uvsocket_BINARY_DIR=" ${uvsocket_BINARY_DIR})
 MESSAGE(STATUS "uvsocket_SOURCE_DIR=" ${uvsocket_SOURCE_DIR})
 
 # include路径
-include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libuv/include)
+include_directories(${CMAKE_SOURCE_DIR} 
+${CMAKE_SOURCE_DIR}/libuv/include 
+${CMAKE_SOURCE_DIR}/uWebSockets/src 
+${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src)
 
 # 把第三方库的.a文件和.so文件放到代码的lib文件夹
 link_directories(${CMAKE_BINARY_DIR}/libuv)
+link_directories(${CMAKE_BINARY_DIR}/uWebSockets)
 
 # 设置可执行文件生成路径
 #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -54,7 +58,7 @@ endif(MSVC)
 add_executable (uvsocket  ${SRCS} ${DIR_SRCS})
 
 # 链接第三方静态库
-target_link_libraries(uvsocket uv_a)
+target_link_libraries(uvsocket uv_a uSockets_a)
 # 链接第三方动态库 
 #target_link_libraries(uvsocket -luv)
 
