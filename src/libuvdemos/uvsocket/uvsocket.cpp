@@ -484,7 +484,7 @@ static int udp4_echo_start(int port) {
 }
 
 
-static int pipe_echo_start(char* pipeName) {
+static int pipe_echo_start(const char* pipeName) {
 	int r;
 
 #ifndef _WIN32
@@ -605,8 +605,66 @@ static int udp4_echo_server() {
 	return 0;
 }
 
+#include <thread>
+#include <algorithm>
+#include "taskpool.h"
+#include <iostream>
 int main(int argc, char** argv)
 {
+	{
+		CTaskPool pool(4);
+		std::vector<std::future<int>> results;
+
+		for (int i = 0; i < 8; ++i) {
+			results.emplace_back(
+				pool.enqueue([i] {
+					std::cout << "hello [" << i << "]" << std::endl;
+					//std::this_thread::sleep_for(std::chrono::seconds(1));
+					std::cout << "world [" << i << "]" << std::endl;
+					return i * i;
+					})
+			);
+		}
+
+		for (auto&& result : results)
+		{
+			std::cout << result.get() << ' ';
+		}
+		std::cout << std::endl;
+		return 0;
+	}
+	{
+		int status = 1;
+		std::deque<std::shared_ptr<std::thread>> t_list;
+		printf("test start\n");
+		while (true)
+		{
+			try
+			{
+				t_list.push_back(std::make_shared<std::thread>([&]() {
+					//printf("thread(count=%d) created\n", t_list.size());
+					while (status == 1)
+					{
+						std::this_thread::sleep_for(std::chrono::microseconds(100000));
+					}
+					}));
+			}
+			catch (const std::exception& e)
+			{
+				printf("thread(count=%d) error(%s)\n", t_list.size(), e.what());
+				status = 0;
+				break;
+			}
+		}
+		std::for_each(t_list.begin(), t_list.end(), [](auto & it) {
+			if (it->joinable())
+			{
+				it->join();
+			}
+			});
+		printf("test end\n");
+		return 0;
+	}
 	if (argc == 1)
 	{
 		printf("Usage:\n\t uvsocket [server port]\n\t uvsocket [server port] [rac server ip] [rac server port]\n");
