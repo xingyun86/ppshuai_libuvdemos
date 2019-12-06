@@ -6,6 +6,9 @@ cmake_minimum_required (VERSION 3.8)
 project ("libuvdemos")
 
 # Include sub-projects.
+add_subdirectory ("zlib")
+
+# Include sub-projects.
 add_subdirectory ("libuv")
 
 # Include sub-projects.

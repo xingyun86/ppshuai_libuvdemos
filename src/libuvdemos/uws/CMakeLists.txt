@@ -16,15 +16,18 @@ MESSAGE(STATUS "uvsocket_SOURCE_DIR=" ${uvsocket_SOURCE_DIR})
 
 # include路径
 include_directories(${CMAKE_SOURCE_DIR} 
+${CMAKE_SOURCE_DIR}/zlib
+${CMAKE_BINARY_DIR}/zlib
 ${CMAKE_SOURCE_DIR}/uws/helper
 ${CMAKE_SOURCE_DIR}/libuv/include 
 ${CMAKE_SOURCE_DIR}/uWebSockets/src 
+${CMAKE_SOURCE_DIR}/rapidjson/include
 ${CMAKE_SOURCE_DIR}/uWebSockets/src/include
 ${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src
-${CMAKE_SOURCE_DIR}/vendor/rapidjson/include
 )
 
 # 把第三方库的.a文件和.so文件放到代码的lib文件夹
+link_directories(${CMAKE_BINARY_DIR}/zlib)
 link_directories(${CMAKE_BINARY_DIR}/libuv)
 link_directories(${CMAKE_BINARY_DIR}/uWebSockets)
 
@@ -50,7 +53,8 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src/internal DIR_u
 set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_USE_LIBUV -DLIBUS_NO_SSL -std=c11 -flto")
 
 if (MSVC)
-	set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -DUWS_NO_ZLIB /std:c++17 /std:c++latest -D_HAS_CXX17=1 -D_HAS_CXX20=1")
+	set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} /std:c++17 /std:c++latest -D_HAS_CXX17=1 -D_HAS_CXX20=1")
+	#set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -DUWS_NO_ZLIB /std:c++17 /std:c++latest -D_HAS_CXX17=1 -D_HAS_CXX20=1")
     set(CompilerFlags
         CMAKE_CXX_FLAGS
         CMAKE_CXX_FLAGS_DEBUG
@@ -62,12 +66,14 @@ if (MSVC)
     foreach(CompilerFlag ${CompilerFlags})
         string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
     endforeach()
+	list(APPEND uws_libraries
+			zlibstatic)
 else()
 	set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++17")
 	list(APPEND uws_libraries
 			pthread
 			stdc++fs
-			z)
+			zlibstatic)
 endif(MSVC)
 
 
