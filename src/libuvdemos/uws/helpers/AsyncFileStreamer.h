@@ -1,4 +1,5 @@
 #include <filesystem>
+#include "../common.h"
 
 struct AsyncFileStreamer {
 
@@ -13,14 +14,17 @@ struct AsyncFileStreamer {
     void updateRootCache() {
         // todo: if the root folder changes, we want to reload the cache
         for(auto &p : std::filesystem::recursive_directory_iterator(root)) {
-            std::string url = p.path().string().substr(root.length());
-            if (url == "/index.html") {
+			std::string _p = p.path().string();
+			string_replace_all(_p, "/", "\\");
+            std::string url = _p.substr(root.length());
+			//printf("url=%.*s\n", url.length(), url.data());
+            /*if (url == "/index.html") {
                 url = "/";
-            }
+            }*/
 
             char *key = new char[url.length()];
             memcpy(key, url.data(), url.length());
-            asyncFileReaders[std::string_view(key, url.length())] = new AsyncFileReader(p.path().string());
+            asyncFileReaders[std::string_view(key, url.length())] = new AsyncFileReader(_p);
         }
     }
 
