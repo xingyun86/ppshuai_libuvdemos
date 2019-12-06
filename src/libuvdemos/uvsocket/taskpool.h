@@ -50,8 +50,9 @@ public:
 			stop = true;
 		}
 		condition.notify_all();
-		for (std::thread& worker : workers)
+		std::for_each(workers.begin(), workers.end(), [](auto & worker) {
 			worker.join();
+			});
 	}
 private:
 	// need to keep track of threads so we can join them
@@ -71,11 +72,11 @@ public:
 		->std::future<typename std::result_of<F(Args...)>::type> {
 		using return_type = typename std::result_of<F(Args...)>::type;
 
-		auto task = std::make_shared< std::packaged_task<return_type()> >(
+		auto _promise = std::make_shared<std::packaged_task<return_type()>>(
 			std::bind(std::forward<F>(f), std::forward<Args>(args)...)
 			);
 
-		std::future<return_type> res = task->get_future();
+		std::future<return_type> res = _promise->get_future();
 		{
 			std::unique_lock<std::mutex> lock(queue_mutex);
 
@@ -85,7 +86,7 @@ public:
 				throw std::runtime_error("enqueue on stopped TaskPool");
 			}
 
-			tasks.emplace_back([task]() { (*task)(); });
+			tasks.emplace_back([_promise]() { (*_promise)(); });
 		}
 		condition.notify_one();
 		return res;

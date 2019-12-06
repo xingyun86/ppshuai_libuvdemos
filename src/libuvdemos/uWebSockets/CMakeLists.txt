@@ -35,8 +35,9 @@ link_directories(${CMAKE_BINARY_DIR}/libuv)
 #set(CMAKE_C_FLAGS_DEBUG "$ENV{CFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
 #set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb -DLIBUS_NO_SSL -std=c11 -flto -c ")
 
-	MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
-set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_NO_SSL -std=c11 -flto")
+MESSAGE(STATUS "CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
+
+set(CMAKE_C_FLAGS "$ENV{CFLAGS} -DLIBUS_USE_LIBUV -DLIBUS_NO_SSL -std=c11 -flto")
 
 if (MSVC)
 	list(APPEND uSockets_cflags /W4)
@@ -53,8 +54,7 @@ if (MSVC)
 			user32
 			userenv
 			ws2_32)
-	endif()
-	if(${CMAKE_BUILD_TYPE} STREQUAL Release)
+	else()#(${CMAKE_BUILD_TYPE} STREQUAL Release)
 		list(APPEND uSockets_libraries
 			libcmt
 			advapi32

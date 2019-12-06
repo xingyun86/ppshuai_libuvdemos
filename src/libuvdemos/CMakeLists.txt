@@ -13,3 +13,6 @@ add_subdirectory ("uWebSockets")
 
 # Include sub-projects.
 add_subdirectory ("uvsocket")
+
+# Include sub-projects.
+add_subdirectory ("uws")

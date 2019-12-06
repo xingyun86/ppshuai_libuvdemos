@@ -377,6 +377,8 @@ if (MSVC)
     foreach(CompilerFlag ${CompilerFlags})
         string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
     endforeach()
+else()
+	set(CMAKE_C_FLAGS "$ENV{CFLAGS} -fPIC")
 endif(MSVC)
 
 add_library(uv SHARED ${uv_sources})
