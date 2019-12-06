@@ -1,0 +1,146 @@
+﻿<!doctype html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport'
+          content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+    <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+    <title>中国四大期货龙虎榜</title>
+    <script src='js/jquery-3.4.1.min.js'></script>
+    <script src='d3/d3.min.js'></script>
+    <script>
+        $(document).ready(function () {
+            host = 'xjp.ppsbbs.tech:8899';
+            //host = '192.168.100.5:3000';
+            function date_to_string(date,seperator) {
+                // 获取当前日期
+                //var date = new Date();
+
+                // 获取当前月份
+                var nowMonth = date.getMonth() + 1;
+
+                // 获取当前是几号
+                var strDate = date.getDate();
+
+                // 添加分隔符"-"
+                //var seperator = "-";
+
+                // 对月份进行处理，1-9月在前面添加一个“0”
+                if (nowMonth >= 1 && nowMonth <= 9) {
+                   nowMonth = "0" + nowMonth;
+                }
+
+                // 对月份进行处理，1-9号在前面添加一个“0”
+                if (strDate >= 0 && strDate <= 9) {
+                   strDate = "0" + strDate;
+                }
+
+                // 最后拼接字符串，得到一个格式为(yyyy-MM-dd)的日期
+                return date.getFullYear() + seperator + nowMonth + seperator + strDate;
+            }
+            $('#date-dce').val(date_to_string(new Date(), '-'));
+            $('#date-shfe').val(date_to_string(new Date(), '-'));
+            $.ajax({
+                type: "GET",
+                url: 'http://' + host + '/chart-dce-list?p=dce&d=' + date_to_string(new Date, '') + '&c=2',
+                dataType: 'json',
+                data: {},
+                cache: false,
+                ifModified: true,
+                async: false,
+                success: function (response) {
+                    //操作
+                    codes = eval(response);
+                    for (var i in codes) {
+                        $("#select-dce").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
+                    }
+                }
+            });
+            $.ajax({
+                type: "GET",
+                url: 'http://' + host + '/chart-shfe-list?p=shfe&d=' + date_to_string(new Date, '') + '&c=2',
+                dataType: 'json',
+                data: {},
+                cache: false,
+                ifModified: true,
+                async: false,
+                success: function (response) {
+                    //操作
+                    codes = eval(response);
+                    for (var i in codes) {
+                        $("#select-shfe").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
+                    }
+                }
+            });
+            document.getElementById("panel").onclick = function () {
+                alert("元素已经加载完毕 !");
+            }
+
+            document.getElementById("chart-dce").onclick = function () {
+                //alert("元素已经加载完毕 !");
+                $("#chart-dce-panel").html('');
+                dce_date = $('#date-dce').val().toString();
+                regex = new RegExp('-', 'g');
+                dce_date = dce_date.replace(regex, '');
+                $.ajax({
+                    type: "GET",
+                    url: 'http://' + host + '/chart-dce?p=' + $('#select-dce').val() + '&d=' + dce_date + '&c=' + $('#days-dce').val(),
+                    dataType: 'html',
+                    data: {},
+                    cache: false,
+                    ifModified: true,
+                    async: false,
+                    success: function (response) {
+                        //操作
+                        $("#chart-dce-panel").html(response);
+                    }
+                });
+            }
+            document.getElementById("chart-shfe").onclick = function () {
+                //alert("元素已经加载完毕 !");
+                $("#chart-shfe-panel").html('');
+                shfe_date = $('#date-shfe').val().toString();
+                regex = new RegExp('-', 'g');
+                shfe_date = shfe_date.replace(regex, '');
+                $.ajax({
+                    type: "GET",
+                    url: 'http://' + host + '/chart-shfe?p=' + $('#select-shfe').val() + '&d=' + shfe_date + '&c=' + $('#days-shfe').val(),
+                    dataType: 'html',
+                    data: {},
+                    cache: false,
+                    ifModified: true,
+                    async: false,
+                    success: function (response) {
+                        //操作
+                        $("#chart-shfe-panel").html(response);
+                    }
+                });
+            }
+        })
+    </script>
+</head>
+
+<body>
+    <div id="panel">选择参数显示想要的曲线</div>
+    <span>合约:</span>
+    <select id="select-dce">
+    </select>
+    <span>日期:</span>
+    <input id="date-dce" type="date" name="date-dce" value="2019-12-01" min="2019-01-01" max="2020-01-01" />
+    <span>天数:</span>
+    <input id="days-dce" type="number" name="days-dce" value="2" min="2" max="90">
+    <button id="chart-dce">大商所</button>
+    <span>合约:</span>
+    <select id="select-shfe">
+    </select>
+    <span>日期:</span>
+    <input id="date-shfe" type="date" name="date-shfe" value="2019-12-01" min="2019-01-01" max="2020-01-01" />
+    <span>天数:</span>
+    <input id="days-shfe" type="number" name="days-shfe" value="2" min="2" max="90">
+    <button id="chart-shfe">上期所</button>
+    <div id='chart-dce-panel'></div>
+    <div id='chart-shfe-panel'></div>
+</body>
+
+</html>
