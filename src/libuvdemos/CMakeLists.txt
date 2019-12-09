@@ -12,6 +12,9 @@ add_subdirectory ("zlib")
 add_subdirectory ("libuv")
 
 # Include sub-projects.
+add_subdirectory ("mbedtls")
+
+# Include sub-projects.
 add_subdirectory ("uWebSockets")
 
 # Include sub-projects.
