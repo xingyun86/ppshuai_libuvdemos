@@ -200,7 +200,7 @@ else()
 endif()
 
 if(ENABLE_ZLIB_SUPPORT)
-    include_directories(${CMAKE_SOURCE_DIR}/zlib)
+    include_directories(${CMAKE_SOURCE_DIR}/zlib ${CMAKE_BINARY_DIR}/zlib)
     link_directories(${CMAKE_BINARY_DIR}/zlib)
     list(APPEND libs zlibstatic)
     #find_package(ZLIB)

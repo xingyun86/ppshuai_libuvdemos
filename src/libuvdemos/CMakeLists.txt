@@ -15,7 +15,7 @@ add_subdirectory ("mbedtls")
 add_subdirectory ("libssh2")
 
 # Include sub-projects.
-#add_subdirectory ("libcurl")
+add_subdirectory ("libcurl")
 
 # Include sub-projects.
 add_subdirectory ("libuv")
