@@ -163,6 +163,20 @@ if(CMAKE_COMPILER_IS_MSVC)
     # Strictest warnings, and treat as errors
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+    
+    if (MSVC)
+        set(CompilerFlags
+            CMAKE_CXX_FLAGS
+            CMAKE_CXX_FLAGS_DEBUG
+            CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_C_FLAGS
+            CMAKE_C_FLAGS_DEBUG
+            CMAKE_C_FLAGS_RELEASE
+            )
+        foreach(CompilerFlag ${CompilerFlags})
+            string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+        endforeach()
+    endif(MSVC)
 endif(CMAKE_COMPILER_IS_MSVC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")

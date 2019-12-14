@@ -142,22 +142,27 @@ if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     set(mbedx509_static_target "mbedx509_static")
     set(mbedcrypto_static_target "mbedcrypto_static")
 elseif(USE_STATIC_MBEDTLS_LIBRARY)
-    set(mbedtls_static_target "mbedtls")
-    set(mbedx509_static_target "mbedx509")
-    set(mbedcrypto_static_target "mbedcrypto")
+    set(mbedtls_static_target "mbedtls_static")
+    set(mbedx509_static_target "mbedx509_static")
+    set(mbedcrypto_static_target "mbedcrypto_static")
+    #set(mbedtls_static_target "mbedtls")
+    #set(mbedx509_static_target "mbedx509")
+    #set(mbedcrypto_static_target "mbedcrypto")
 endif()
 
 if(USE_STATIC_MBEDTLS_LIBRARY)
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
-    set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
+    #set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
+    set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME ${mbedx509_static_target})
     target_link_libraries(${mbedx509_static_target} ${libs} ${mbedcrypto_static_target})
     target_include_directories(${mbedx509_static_target}
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
-    set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
+    #set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
+    set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME ${mbedtls_static_target})
     target_link_libraries(${mbedtls_static_target} ${libs} ${mbedx509_static_target})
     target_include_directories(${mbedtls_static_target}
         PUBLIC ${MBEDTLS_DIR}/include/
@@ -169,6 +174,12 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
             DESTINATION ${LIB_INSTALL_DIR}
             PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
+    add_custom_target(lib DEPENDS mbedx509_static mbedtls_static)        
+    if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+        add_dependencies(lib mbedx509_static mbedtls_static)
+    elseif(USE_STATIC_MBEDTLS_LIBRARY)
+        add_dependencies(lib mbedx509_static mbedtls_static)
+    endif()
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
@@ -187,13 +198,13 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
-      install(TARGETS mbedtls mbedx509
-              DESTINATION ${LIB_INSTALL_DIR}
-              PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
+    install(TARGETS mbedtls mbedx509
+            DESTINATION ${LIB_INSTALL_DIR}
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+    add_custom_target(lib DEPENDS mbedx509 mbedtls)
 endif(USE_SHARED_MBEDTLS_LIBRARY)
 
-add_custom_target(lib DEPENDS mbedx509 mbedtls)
-if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
-    add_dependencies(lib mbedx509_static mbedtls_static)
-endif()
+#add_custom_target(lib DEPENDS mbedx509 mbedtls)
+#if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
+#    add_dependencies(lib mbedx509_static mbedtls_static)
+#endif()

@@ -1,5 +1,5 @@
 set(libs
-    mbedtls
+    mbedtls_static
 )
 
 add_executable(strerror strerror.c)

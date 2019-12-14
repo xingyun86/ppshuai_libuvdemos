@@ -9,10 +9,16 @@ project ("libuvdemos")
 add_subdirectory ("zlib")
 
 # Include sub-projects.
-add_subdirectory ("libuv")
+add_subdirectory ("mbedtls")
 
 # Include sub-projects.
-add_subdirectory ("mbedtls")
+add_subdirectory ("libssh2")
+
+# Include sub-projects.
+#add_subdirectory ("libcurl")
+
+# Include sub-projects.
+add_subdirectory ("libuv")
 
 # Include sub-projects.
 add_subdirectory ("uWebSockets")

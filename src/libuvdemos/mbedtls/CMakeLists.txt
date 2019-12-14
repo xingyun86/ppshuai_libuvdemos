@@ -8,7 +8,9 @@ endif()
 set(MBEDTLS_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
-option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+#option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
+option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." ON)
+set(ENABLE_ZLIB_SUPPORT ON)
 
 option(ENABLE_PROGRAMS "Build mbed TLS programs." ON)
 
@@ -168,6 +170,20 @@ if(CMAKE_COMPILER_IS_MSVC)
     # Strictest warnings, and treat as errors
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+
+    if (MSVC)
+        set(CompilerFlags
+            CMAKE_CXX_FLAGS
+            CMAKE_CXX_FLAGS_DEBUG
+            CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_C_FLAGS
+            CMAKE_C_FLAGS_DEBUG
+            CMAKE_C_FLAGS_RELEASE
+            )
+        foreach(CompilerFlag ${CompilerFlags})
+            string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+        endforeach()
+    endif(MSVC)
 endif(CMAKE_COMPILER_IS_MSVC)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
@@ -182,11 +198,14 @@ else()
 endif()
 
 if(ENABLE_ZLIB_SUPPORT)
-    find_package(ZLIB)
+    include_directories(${CMAKE_SOURCE_DIR}/zlib)
+    link_directories(${CMAKE_BINARY_DIR}/zlib)
+    list(APPEND libs zlibstatic)
+    #find_package(ZLIB)
 
-    if(ZLIB_FOUND)
-        include_directories(${ZLIB_INCLUDE_DIR})
-    endif(ZLIB_FOUND)
+    #if(ZLIB_FOUND)
+    #    include_directories(${ZLIB_INCLUDE_DIR})
+    #endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(crypto/3rdparty)

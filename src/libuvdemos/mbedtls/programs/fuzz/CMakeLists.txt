@@ -1,5 +1,5 @@
 set(libs
-    mbedtls
+    mbedtls_static
 )
 
 if(USE_PKCS11_HELPER_LIBRARY)
