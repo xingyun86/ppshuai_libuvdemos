@@ -9,6 +9,9 @@ project ("libuvdemos")
 add_subdirectory ("zlib")
 
 # Include sub-projects.
+add_subdirectory ("libiconv")
+
+# Include sub-projects.
 add_subdirectory ("mbedtls")
 
 # Include sub-projects.
