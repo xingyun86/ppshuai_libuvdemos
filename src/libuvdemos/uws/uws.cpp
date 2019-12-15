@@ -1296,6 +1296,19 @@ std::string url_decode(const std::string& encode)
 }
 int main(int argc, char** argv)
 {
+	/*{
+		bytedata* pbd = bytedata::startup();
+		CURLcode curlCode = CURLE_OK;
+		curlCode = curl_http_startup();
+		curlCode = curl_http_form_execute(pbd, "http://chromedriver.storage.googleapis.com/index.html");
+		if (curlCode == CURLE_OK)
+		{
+			printf("ret=%d\n", pbd->s);
+			file_writer(std::string(pbd->p, pbd->s), "test.html");
+		}
+		curl_http_cleanup();
+		pbd->cleanup();
+	}*/
 	//test_chart();
 	//return 0;
 	int option;
