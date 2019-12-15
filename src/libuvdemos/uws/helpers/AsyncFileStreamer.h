@@ -18,9 +18,9 @@ struct AsyncFileStreamer {
 			string_replace_all(_p, "/", "\\");
             std::string url = _p.substr(root.length());
 			//printf("url=%.*s\n", url.length(), url.data());
-            /*if (url == "/index.html") {
-                url = "/";
-            }*/
+            //if (url == "/index.html") {
+            //    url = "/";
+            //}
 
             char *key = new char[url.length()];
             memcpy(key, url.data(), url.length());

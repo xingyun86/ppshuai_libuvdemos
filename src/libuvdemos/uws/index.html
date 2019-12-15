@@ -40,7 +40,9 @@
                 return date.getFullYear() + seperator + nowMonth + seperator + strDate;
             }
             $('#date-dce').val(date_to_string(new Date(), '-'));
+            $('#date-czce').val(date_to_string(new Date(), '-'));
             $('#date-shfe').val(date_to_string(new Date(), '-'));
+            $('#date-cffex').val(date_to_string(new Date(), '-'));
             $.ajax({
                 type: "GET",
                 url: 'http://' + host + '/chart-dce-list?p=dce&d=' + date_to_string(new Date, '') + '&c=2',
@@ -54,6 +56,22 @@
                     codes = eval(response);
                     for (var i in codes) {
                         $("#select-dce").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
+                    }
+                }
+            }); 
+            $.ajax({
+                type: "GET",
+                url: 'http://' + host + '/chart-czce-list?p=czce&d=' + date_to_string(new Date, '') + '&c=2',
+                dataType: 'json',
+                data: {},
+                cache: false,
+                ifModified: true,
+                async: false,
+                success: function (response) {
+                    //操作
+                    codes = eval(response);
+                    for (var i in codes) {
+                        $("#select-czce").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
                     }
                 }
             });
@@ -70,6 +88,22 @@
                     codes = eval(response);
                     for (var i in codes) {
                         $("#select-shfe").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
+                    }
+                }
+            });
+            $.ajax({
+                type: "GET",
+                url: 'http://' + host + '/chart-cffex-list?p=cffex&d=' + date_to_string(new Date, '') + '&c=2',
+                dataType: 'json',
+                data: {},
+                cache: false,
+                ifModified: true,
+                async: false,
+                success: function (response) {
+                    //操作
+                    codes = eval(response);
+                    for (var i in codes) {
+                        $("#select-cffex").append('<option value="' + codes[i] + '">' + codes[i] + '</option>');//添加option;
                     }
                 }
             });
@@ -97,6 +131,26 @@
                     }
                 });
             }
+            document.getElementById("chart-czce").onclick = function () {
+                //alert("元素已经加载完毕 !");
+                $("#chart-czce-panel").html('');
+                czce_date = $('#date-czce').val().toString();
+                regex = new RegExp('-', 'g');
+                czce_date = czce_date.replace(regex, '');
+                $.ajax({
+                    type: "GET",
+                    url: 'http://' + host + '/chart-czce?p=' + $('#select-czce').val() + '&d=' + czce_date + '&c=' + $('#days-czce').val(),
+                    dataType: 'html',
+                    data: {},
+                    cache: false,
+                    ifModified: true,
+                    async: false,
+                    success: function (response) {
+                        //操作
+                        $("#chart-czce-panel").html(response);
+                    }
+                });
+            }
             document.getElementById("chart-shfe").onclick = function () {
                 //alert("元素已经加载完毕 !");
                 $("#chart-shfe-panel").html('');
@@ -116,6 +170,26 @@
                         $("#chart-shfe-panel").html(response);
                     }
                 });
+            }        
+            document.getElementById("chart-cffex").onclick = function () {
+                //alert("元素已经加载完毕 !");
+                $("#chart-cffex-panel").html('');
+                cffex_date = $('#date-cffex').val().toString();
+                regex = new RegExp('-', 'g');
+                cffex_date = cffex_date.replace(regex, '');
+                $.ajax({
+                    type: "GET",
+                    url: 'http://' + host + '/chart-cffex?p=' + $('#select-cffex').val() + '&d=' + cffex_date + '&c=' + $('#days-cffex').val(),
+                    dataType: 'html',
+                    data: {},
+                    cache: false,
+                    ifModified: true,
+                    async: false,
+                    success: function (response) {
+                        //操作
+                        $("#chart-cffex-panel").html(response);
+                    }
+                });
             }
         })
     </script>
@@ -130,7 +204,16 @@
     <input id="date-dce" type="date" name="date-dce" value="2019-12-01" min="2019-01-01" max="2020-01-01" />
     <span>天数:</span>
     <input id="days-dce" type="number" name="days-dce" value="2" min="2" max="90">
-    <button id="chart-dce">大商所</button>
+    <button id="chart-dce">大商所</button><br>
+    <span>合约:</span>
+    <select id="select-czce">
+    </select>
+    <span>日期:</span>
+    <input id="date-czce" type="date" name="date-czce" value="2019-12-01" min="2019-01-01" max="2020-01-01" />
+    <span>天数:</span>
+    <input id="days-czce" type="number" name="days-czce" value="2" min="2" max="90">
+    <button id="chart-czce">郑商所</button>
+    <br>
     <span>合约:</span>
     <select id="select-shfe">
     </select>
@@ -139,8 +222,19 @@
     <span>天数:</span>
     <input id="days-shfe" type="number" name="days-shfe" value="2" min="2" max="90">
     <button id="chart-shfe">上期所</button>
+    <br>
+    <span>合约:</span>
+    <select id="select-cffex">
+    </select>
+    <span>日期:</span>
+    <input id="date-cffex" type="date" name="date-cffex" value="2019-12-01" min="2019-01-01" max="2020-01-01" />
+    <span>天数:</span>
+    <input id="days-cffex" type="number" name="days-cffex" value="2" min="2" max="90">
+    <button id="chart-cffex">中金所</button>
     <div id='chart-dce-panel'></div>
+    <div id='chart-czce-panel'></div>
     <div id='chart-shfe-panel'></div>
+    <div id='chart-cffex-panel'></div>
 </body>
 
 </html>
