@@ -95,8 +95,11 @@ configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/srclib/uniwidth.in.h
 		${CMAKE_CURRENT_BINARY_DIR}/uniwidth.h @ONLY)
 configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/srclib/unitypes.in.h
 		${CMAKE_CURRENT_BINARY_DIR}/unitypes.h @ONLY)
+
+if(MSVC)
 configure_file(	${CMAKE_CURRENT_SOURCE_DIR}/srclib/unistd.in.h
 		${CMAKE_CURRENT_BINARY_DIR}/unistd.h @ONLY)
+endif(MSVC)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR})
 

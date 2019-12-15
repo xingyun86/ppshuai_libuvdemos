@@ -12,8 +12,8 @@
 #include "helpers/optparse.h"
 
 #include "common.h"
-//#include "curl_helper.h"
-//#include "iconv_helper.h"
+#include "curl_helper.h"
+#include "iconv_helper.h"
 //#include "signal_handler.h"
 
 #include <map>
@@ -75,7 +75,7 @@ void calc_date_list(std::map<std::string, std::string>& umap, const std::string 
 	}
 	
 }
-/*std::string dce_chart(const std::string& product_name, const std::string& date, int count, bool bGetCode = false)
+std::string dce_chart(const std::string& product_name, const std::string& date, int count, bool bGetCode = false)
 {
 	std::string T = "";
 	std::string X = "";
@@ -369,7 +369,7 @@ void calc_date_list(std::map<std::string, std::string>& umap, const std::string 
 	string_replace_all(temp, L5S, "LLL5SSS");
 	string_replace_all(temp, L10S, "LLL10SSS");
 	string_replace_all(temp, L20S, "LLL20SSS");
-	//file_writer(temp, T + ".html");
+	file_writer(temp, T + ".html");
 	return temp;
 }
 std::string shfe_chart(const std::string& product_name, const std::string& date, int count, bool bGetCode = false)
@@ -623,7 +623,7 @@ std::string shfe_chart(const std::string& product_name, const std::string& date,
 	string_replace_all(temp, L20S, "LLL20SSS");
 	//file_writer(temp, T + ".html");
 	return temp;
-}*/
+}
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/reader.h>
@@ -923,7 +923,7 @@ int main(int argc, char** argv)
 										//printf("{==%.*s==%.*s==%.*s}\n", product_name.length(), product_name.data(), date.length(), date.data(), days.length(), days.data());
 										res->writeHeader("Content-Type", "text/html; charset=utf-8")->end(dce_chart(product_name, date, std::stoi(days)).c_str());
 									}*/
-									res->writeHeader("Content-Type", "text/html; charset=utf-8")->end("");//dce_chart(product_name, date, std::stoi(days)).c_str());
+									res->writeHeader("Content-Type", "text/html; charset=utf-8")->end(dce_chart(product_name, date, std::stoi(days)).c_str());
 								}
 								catch (const std::exception & e)
 								{
@@ -968,7 +968,7 @@ int main(int argc, char** argv)
 										//printf("{==%.*s==%.*s==%.*s}\n", product_name.length(), product_name.data(), date.length(), date.data(), days.length(), days.data());
 										res->writeHeader("Content-Type", "text/html; charset=utf-8")->end(dce_chart(product_name, date, std::stoi(days)).c_str());
 									}*/
-									res->writeHeader("Content-Type", "application/json; charset=utf-8")->end("");//dce_chart(product_name, date, std::stoi(days), true).c_str());
+									res->writeHeader("Content-Type", "application/json; charset=utf-8")->end(dce_chart(product_name, date, std::stoi(days), true).c_str());
 								}
 								catch (const std::exception & e)
 								{
@@ -1004,7 +1004,7 @@ int main(int argc, char** argv)
 								days = svv.at(2).at(0);
 								try
 								{
-									res->writeHeader("Content-Type", "text/html; charset=utf-8")->end("");//shfe_chart(product_name, date, std::stoi(days)).c_str());
+									res->writeHeader("Content-Type", "text/html; charset=utf-8")->end(shfe_chart(product_name, date, std::stoi(days)).c_str());
 								}
 								catch (const std::exception & e)
 								{
@@ -1040,7 +1040,7 @@ int main(int argc, char** argv)
 								days = svv.at(2).at(0);
 								try
 								{
-									res->writeHeader("Content-Type", "application/json; charset=utf-8")->end("");//shfe_chart(product_name, date, std::stoi(days), true).c_str());
+									res->writeHeader("Content-Type", "application/json; charset=utf-8")->end(shfe_chart(product_name, date, std::stoi(days), true).c_str());
 								}
 								catch (const std::exception & e)
 								{

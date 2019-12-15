@@ -20,6 +20,10 @@ ${CMAKE_SOURCE_DIR}/zlib
 ${CMAKE_BINARY_DIR}/zlib
 ${CMAKE_SOURCE_DIR}/uws/helper
 ${CMAKE_SOURCE_DIR}/libuv/include 
+${CMAKE_BINARY_DIR}/libiconv
+${CMAKE_SOURCE_DIR}/libiconv/include  
+${CMAKE_BINARY_DIR}/libcurl
+${CMAKE_SOURCE_DIR}/libcurl/include  
 ${CMAKE_SOURCE_DIR}/uWebSockets/src 
 ${CMAKE_SOURCE_DIR}/rapidjson/include
 ${CMAKE_SOURCE_DIR}/uWebSockets/src/include
@@ -29,6 +33,8 @@ ${CMAKE_SOURCE_DIR}/uWebSockets/uSockets/src
 # 把第三方库的.a文件和.so文件放到代码的lib文件夹
 link_directories(${CMAKE_BINARY_DIR}/zlib)
 link_directories(${CMAKE_BINARY_DIR}/libuv)
+link_directories(${CMAKE_BINARY_DIR}/libiconv)
+link_directories(${CMAKE_BINARY_DIR}/libcurl/lib)
 link_directories(${CMAKE_BINARY_DIR}/uWebSockets)
 
 # 设置可执行文件生成路径
@@ -67,12 +73,16 @@ if (MSVC)
         string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
     endforeach()
 	list(APPEND uws_libraries
+            libiconv
+            libcurl
 			zlibstatic)
 else()
 	set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} -std=c++17")
 	list(APPEND uws_libraries
 			pthread
 			stdc++fs
+            libiconv
+            libcurl
 			zlibstatic)
 endif(MSVC)
 
