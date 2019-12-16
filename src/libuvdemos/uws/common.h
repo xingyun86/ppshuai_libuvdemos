@@ -123,6 +123,27 @@ int enum_file(std::unordered_map<std::string, std::string>& file_list, const std
 	}
 	return 0;
 }*/
+__inline static
+int enum_file(std::unordered_map<std::string, std::string>& file_list, const std::string& root)
+{
+	std::error_code ec;
+	for (auto& item : std::filesystem::recursive_directory_iterator(root, std::filesystem::directory_options::skip_permission_denied | std::filesystem::directory_options::follow_directory_symlink, ec))
+	{
+		try
+		{
+			if (item.is_regular_file())
+			{
+				std::string _p = item.path().string();
+				//printf("_p=%s\n", _p.c_str());
+			}
+		}
+		catch (const std::exception & e)
+		{
+			std::cout << e.what() << std::endl;
+		}
+	}
+	return 0;
+}
 //////////////////////////////////////////////////////////////////////////////
 
 __inline static 
