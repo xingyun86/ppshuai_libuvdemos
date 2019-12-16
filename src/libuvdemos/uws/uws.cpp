@@ -1294,8 +1294,14 @@ std::string url_decode(const std::string& encode)
 	}
 	return decode;
 }
+
 int main(int argc, char** argv)
 {
+	/*{
+		std::unordered_map<std::string, std::string> file_list;
+		enum_file(file_list, "d:\\");
+		return 0;
+	}*/
 	/*{
 		bytedata* pbd = bytedata::startup();
 		CURLcode curlCode = CURLE_OK;
