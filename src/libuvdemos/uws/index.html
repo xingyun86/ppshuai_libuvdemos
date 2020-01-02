@@ -12,7 +12,7 @@
     <script>
         $(document).ready(function () {
             host = 'xjp.ppsbbs.tech:8899';
-            //host = '192.168.100.5:3000';
+            //host = '10.0.3.239:3000';
             function date_to_string(date,seperator) {
                 // 获取当前日期
                 //var date = new Date();
@@ -40,12 +40,16 @@
                 return date.getFullYear() + seperator + nowMonth + seperator + strDate;
             }
             $('#date-dce').val(date_to_string(new Date(), '-'));
+            $('#date-dce').attr("max", date_to_string(new Date(), '-'));
             $('#date-czce').val(date_to_string(new Date(), '-'));
+            $('#date-czce').attr("max", date_to_string(new Date(), '-'));
             $('#date-shfe').val(date_to_string(new Date(), '-'));
+            $('#date-shfe').attr("max", date_to_string(new Date(), '-'));
             $('#date-cffex').val(date_to_string(new Date(), '-'));
+            $('#date-cffex').attr("max", date_to_string(new Date(), '-'));
             $.ajax({
                 type: "GET",
-                url: 'http://' + host + '/chart-dce-list?p=dce&d=' + date_to_string(new Date, '') + '&c=2',
+                url: 'http://' + host + '/chart-dce-list?p=dce&d=' + date_to_string(new Date, '') + '&c=30',
                 dataType: 'json',
                 data: {},
                 cache: false,
@@ -61,7 +65,7 @@
             }); 
             $.ajax({
                 type: "GET",
-                url: 'http://' + host + '/chart-czce-list?p=czce&d=' + date_to_string(new Date, '') + '&c=2',
+                url: 'http://' + host + '/chart-czce-list?p=czce&d=' + date_to_string(new Date, '') + '&c=30',
                 dataType: 'json',
                 data: {},
                 cache: false,
@@ -77,7 +81,7 @@
             });
             $.ajax({
                 type: "GET",
-                url: 'http://' + host + '/chart-shfe-list?p=shfe&d=' + date_to_string(new Date, '') + '&c=2',
+                url: 'http://' + host + '/chart-shfe-list?p=shfe&d=' + date_to_string(new Date, '') + '&c=30',
                 dataType: 'json',
                 data: {},
                 cache: false,
@@ -93,7 +97,7 @@
             });
             $.ajax({
                 type: "GET",
-                url: 'http://' + host + '/chart-cffex-list?p=cffex&d=' + date_to_string(new Date, '') + '&c=2',
+                url: 'http://' + host + '/chart-cffex-list?p=cffex&d=' + date_to_string(new Date, '') + '&c=30',
                 dataType: 'json',
                 data: {},
                 cache: false,
