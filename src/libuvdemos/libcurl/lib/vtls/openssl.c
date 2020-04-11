@@ -468,7 +468,7 @@ static CURLcode Curl_ossl_seed(struct Curl_easy *data)
   /* if RANDOM_FILE isn't defined, we only perform this if an option tells
      us to! */
   if(data->set.str[STRING_SSL_RANDOM_FILE])
-#define RANDOM_FILE "" /* doesn't matter won't be used */
+#define RANDOM_FILE "/dev/urandom" /* doesn't matter won't be used */
 #endif
   {
     /* let the option override the define */

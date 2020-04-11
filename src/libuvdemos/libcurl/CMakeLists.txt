@@ -77,15 +77,15 @@ option(BUILD_CURL_EXE "Set to ON to build curl executable." ON)
 #option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(BUILD_SHARED_LIBS OFF)
-option(ENABLE_ARES "Set to ON to enable c-ares support" OFF)
+option(ENABLE_ARES "Set to ON to enable c-ares support" ON)
 if(WIN32)
   option(CURL_STATIC_CRT "Set to ON to build libcurl with static CRT on Windows (/MT)." ON)
   option(ENABLE_INET_PTON "Set to OFF to prevent usage of inet_pton when building against modern SDKs while still requiring compatibility with older Windows versions, such as Windows XP, Windows Server 2003 etc." ON)
 endif()
 
 cmake_dependent_option(ENABLE_THREADED_RESOLVER "Set to ON to enable threaded DNS lookup"
-        ON "NOT ENABLE_ARES"
-        OFF)
+        ON "ENABLE_ARES"
+        ON)
 
 option(ENABLE_DEBUG "Set to ON to enable curl debug features" OFF)
 option(ENABLE_CURLDEBUG "Set to ON to build with TrackMemory feature enabled" OFF)
@@ -123,7 +123,16 @@ set(CURL_LIBS "")
 
 if(ENABLE_ARES)
   set(USE_ARES 1)
-  find_package(CARES REQUIRED)
+  #find_package(CARES REQUIRED)
+  # include路径
+  set(CARES_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/cares")
+  include_directories("${CMAKE_SOURCE_DIR}/cares")
+  
+  SET (CPPFLAG_CARES_STATICLIB "-DCARES_STATICLIB")
+  # 把第三方库的.a文件和.so文件放到代码的lib文件夹
+  link_directories(${CMAKE_BINARY_DIR}/cares/${CMAKE_INSTALL_LIBDIR})
+
+  set(CARES_LIBRARY "cares_static")
   list(APPEND CURL_LIBS ${CARES_LIBRARY})
   set(CURL_LIBS ${CURL_LIBS} ${CARES_LIBRARY})
 endif()

@@ -18,6 +18,7 @@ MESSAGE(STATUS "uvsocket_SOURCE_DIR=" ${uvsocket_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR} 
 ${CMAKE_SOURCE_DIR}/zlib
 ${CMAKE_BINARY_DIR}/zlib
+${CMAKE_SOURCE_DIR}/cares
 ${CMAKE_SOURCE_DIR}/uws/helper
 ${CMAKE_SOURCE_DIR}/libuv/include 
 ${CMAKE_BINARY_DIR}/libiconv
@@ -36,6 +37,7 @@ link_directories(${CMAKE_BINARY_DIR}/libuv)
 link_directories(${CMAKE_BINARY_DIR}/libiconv)
 link_directories(${CMAKE_BINARY_DIR}/libcurl/lib)
 link_directories(${CMAKE_BINARY_DIR}/uWebSockets)
+link_directories(${CMAKE_BINARY_DIR}/cares/${CMAKE_INSTALL_LIBDIR})
 
 # 设置可执行文件生成路径
 #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
