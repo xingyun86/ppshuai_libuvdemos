@@ -79,7 +79,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 set(BUILD_SHARED_LIBS OFF)
 option(ENABLE_ARES "Set to ON to enable c-ares support" OFF)
 if(WIN32)
-  option(CURL_STATIC_CRT "Set to ON to build libcurl with static CRT on Windows (/MT)." OFF)
+  option(CURL_STATIC_CRT "Set to ON to build libcurl with static CRT on Windows (/MT)." ON)
   option(ENABLE_INET_PTON "Set to OFF to prevent usage of inet_pton when building against modern SDKs while still requiring compatibility with older Windows versions, such as Windows XP, Windows Server 2003 etc." ON)
 endif()
 
@@ -953,11 +953,15 @@ check_symbol_exists(setmode        "${CURL_INCLUDES}" HAVE_SETMODE)
 check_symbol_exists(setrlimit      "${CURL_INCLUDES}" HAVE_SETRLIMIT)
 check_symbol_exists(fcntl          "${CURL_INCLUDES}" HAVE_FCNTL)
 check_symbol_exists(ioctl          "${CURL_INCLUDES}" HAVE_IOCTL)
+check_symbol_exists(ioctlsocket    "${CURL_INCLUDES}" HAVE_IOCTLSOCKET)
 check_symbol_exists(setsockopt     "${CURL_INCLUDES}" HAVE_SETSOCKOPT)
 check_function_exists(mach_absolute_time HAVE_MACH_ABSOLUTE_TIME)
 
 # symbol exists in win32, but function does not.
 if(WIN32)
+  if(NOT HAVE_IOCTLSOCKET)
+    set(HAVE_IOCTLSOCKET 1)
+  endif()
   if(ENABLE_INET_PTON)
     check_function_exists(inet_pton HAVE_INET_PTON)
     # _WIN32_WINNT_VISTA (0x0600)
@@ -1121,6 +1125,7 @@ endif()
 set(HAVE_DISABLED_NONBLOCKING 1)
 if(HAVE_FIONBIO OR
     HAVE_IOCTLSOCKET OR
+    HAVE_IOCTLSOCKET_FIONBIO OR
     HAVE_IOCTLSOCKET_CASE OR
     HAVE_O_NONBLOCK)
   set(HAVE_DISABLED_NONBLOCKING)
